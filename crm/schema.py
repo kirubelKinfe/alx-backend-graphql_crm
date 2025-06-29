@@ -3,60 +3,41 @@ from graphene_django import DjangoObjectType
 from .models import Customer, Product, Order
 from django.db import transaction
 import re
-from graphene import InputObjectType, Field, List, String, Int, Float, ID, Mutation as GrapheneMutation
-from graphene_django.filter import DjangoFilterConnectionField
+from graphene import InputObjectType, Field, List, String, Int, Float, ID, Mutation as GrapheneMutation, Decimal
 from .filters import CustomerFilter, ProductFilter, OrderFilter
 
-class CustomerNode(DjangoObjectType):
+class CustomerType(DjangoObjectType):
     class Meta:
         model = Customer
-        filterset_class = CustomerFilter
-        interfaces = (graphene.relay.Node,)
         fields = ("id", "name", "email", "phone", "created_at")
 
-class ProductNode(DjangoObjectType):
+class ProductType(DjangoObjectType):
     class Meta:
         model = Product
-        filterset_class = ProductFilter
-        interfaces = (graphene.relay.Node,)
         fields = ("id", "name", "price", "stock")
 
-class OrderNode(DjangoObjectType):
+class OrderType(DjangoObjectType):
     class Meta:
         model = Order
-        filterset_class = OrderFilter
-        interfaces = (graphene.relay.Node,)
         fields = ("id", "customer", "products", "total_amount", "order_date")
 
 class Query(graphene.ObjectType):
     hello = graphene.String()
-    all_customers = DjangoFilterConnectionField(CustomerNode, order_by=graphene.List(of_type=graphene.String))
-    all_products = DjangoFilterConnectionField(ProductNode, order_by=graphene.List(of_type=graphene.String))
-    all_orders = DjangoFilterConnectionField(OrderNode, order_by=graphene.List(of_type=graphene.String))
+    all_customers = graphene.List(CustomerType)
+    all_products = graphene.List(ProductType)
+    all_orders = graphene.List(OrderType)
 
     def resolve_hello(root, info):
         return "Hello, GraphQL!"
 
-    def resolve_all_customers(root, info, **kwargs):
-        qs = Customer.objects.all()
-        order_by = kwargs.get('order_by')
-        if order_by:
-            qs = qs.order_by(*order_by)
-        return qs
+    def resolve_all_customers(root, info):
+        return Customer.objects.all()
 
-    def resolve_all_products(root, info, **kwargs):
-        qs = Product.objects.all()
-        order_by = kwargs.get('order_by')
-        if order_by:
-            qs = qs.order_by(*order_by)
-        return qs
+    def resolve_all_products(root, info):
+        return Product.objects.all()
 
-    def resolve_all_orders(root, info, **kwargs):
-        qs = Order.objects.all()
-        order_by = kwargs.get('order_by')
-        if order_by:
-            qs = qs.order_by(*order_by)
-        return qs
+    def resolve_all_orders(root, info):
+        return Order.objects.all()
 
 class CreateCustomerInput(InputObjectType):
     name = String(required=True)
@@ -66,7 +47,7 @@ class CreateCustomerInput(InputObjectType):
 class CreateCustomer(GrapheneMutation):
     class Arguments:
         input = CreateCustomerInput(required=True)
-    customer = Field(CustomerNode)
+    customer = Field(CustomerType)
     message = String()
     errors = List(String)
 
@@ -74,7 +55,7 @@ class CreateCustomer(GrapheneMutation):
     def validate_phone(phone):
         if not phone:
             return True
-        pattern = r'^(\\+\\d{10,15}|\\d{3}-\\d{3}-\\d{4})$'
+        pattern = r'^(\+\d{10,15}|\d{3}-\d{3}-\d{4})$'
         return re.match(pattern, phone)
 
     @classmethod
@@ -96,7 +77,7 @@ class CreateCustomer(GrapheneMutation):
 class BulkCreateCustomers(GrapheneMutation):
     class Arguments:
         input = List(CreateCustomerInput, required=True)
-    customers = List(CustomerNode)
+    customers = List(CustomerType)
     errors = List(String)
 
     @classmethod
@@ -121,13 +102,13 @@ class BulkCreateCustomers(GrapheneMutation):
 
 class CreateProductInput(InputObjectType):
     name = String(required=True)
-    price = Float(required=True)
+    price = Decimal(required=True)
     stock = Int(default_value=0)
 
 class CreateProduct(GrapheneMutation):
     class Arguments:
         input = CreateProductInput(required=True)
-    product = Field(ProductNode)
+    product = Field(ProductType)
     errors = List(String)
 
     @classmethod
@@ -154,7 +135,7 @@ class CreateOrderInput(InputObjectType):
 class CreateOrder(GrapheneMutation):
     class Arguments:
         input = CreateOrderInput(required=True)
-    order = Field(OrderNode)
+    order = Field(OrderType)
     errors = List(String)
 
     @classmethod
