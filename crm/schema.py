@@ -29,9 +29,13 @@ class OrderNode(DjangoObjectType):
         fields = ("id", "customer", "products", "total_amount", "order_date")
 
 class Query(graphene.ObjectType):
+    hello = graphene.String()
     all_customers = DjangoFilterConnectionField(CustomerNode, order_by=graphene.List(of_type=graphene.String))
     all_products = DjangoFilterConnectionField(ProductNode, order_by=graphene.List(of_type=graphene.String))
     all_orders = DjangoFilterConnectionField(OrderNode, order_by=graphene.List(of_type=graphene.String))
+
+    def resolve_hello(root, info):
+        return "Hello, GraphQL!"
 
     def resolve_all_customers(root, info, **kwargs):
         qs = Customer.objects.all()
