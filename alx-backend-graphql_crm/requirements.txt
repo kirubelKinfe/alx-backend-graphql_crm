@@ -1,0 +1,2 @@
+django-crontab==0.7.1
+django graphene-django redis celery django-celery-beat
