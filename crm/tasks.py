@@ -1,30 +1,14 @@
 from celery import shared_task
-from crm.schema import schema
+import requests
 from datetime import datetime
 
 @shared_task
 def generate_crm_report():
-    query = """
-        query {
-            report {
-                totalCustomers
-                totalOrders
-                totalRevenue
-            }
-        }
-    """
-    result = schema.execute(query)
-    if result.errors:
-        with open("/tmp/crm_report_log.txt", "a") as log_file:
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            log_file.write(f"{timestamp} - Error executing query: {result.errors}\n")
-        return
-    
-    data = result.data["report"]
-    total_customers = data["totalCustomers"]
-    total_orders = data["totalOrders"]
-    total_revenue = data["totalRevenue"]
-    
-    with open("/tmp/crm_report_log.txt", "a") as log_file:
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        log_file.write(f"{timestamp} - Report: {total_customers} customers, {total_orders} orders, {total_revenue} revenue\n")
+    query = '''
+    { report { totalCustomers totalOrders totalRevenue } }
+    '''
+    response = requests.post('http://127.0.0.1:8000/graphql', json={'query': query})
+    data = response.json().get('data', {}).get('report', {})
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    with open('/tmp/crm_report_log.txt', 'a') as f:
+        f.write(f"{now} - Report: {data.get('totalCustomers', 0)} customers, {data.get('totalOrders', 0)} orders, {data.get('totalRevenue', 0.0)} revenue\n")

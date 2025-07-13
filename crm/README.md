@@ -1,67 +1,56 @@
-# CRM GraphQL Project Setup
+# CRM Project Scheduled Tasks & Automation
 
-This project implements a CRM system with GraphQL and Celery for automated tasks.
+## Setup Instructions
 
-## Prerequisites
+### 1. Install Dependencies
 
-- Python 3.x
-- Redis server
-- Django project (`alx-backend-graphql_crm`)
+```
+pip install -r requirements.txt
+```
 
-## Installation
+### 2. Install and Start Redis
 
-1. **Install Dependencies**:
-   Install required packages:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-2. **Install Redis**:
-   - On Ubuntu:
-     ```bash
-     sudo apt-get install redis-server
-     ```
-   - On macOS:
-     ```bash
-     brew install redis
-     ```
-   - Start Redis:
-     ```bash
-     redis-server
-     ```
-
-3. **Run Migrations**:
-   Apply database migrations:
-   ```bash
-   python manage.py migrate
-   ```
-
-## Running Celery
-
-1. **Start Celery Worker**:
-   Run the Celery worker to process tasks:
-   ```bash
-   celery -A crm worker -l info
-   ```
-
-2. **Start Celery Beat**:
-   Run Celery Beat to schedule tasks:
-   ```bash
-   celery -A crm beat -l info
-   ```
-
-## Verifying Logs
-
-- Check the CRM report logs:
-  ```bash
-  cat /tmp/crm_report_log.txt
+- Download and install Redis from https://redis.io/download
+- Start the Redis server:
   ```
-  Expected output format:
-  ```
-  2025-07-14 06:00:00 - Report: X customers, Y orders, Z revenue
+  redis-server
   ```
 
-## Notes
+### 3. Run Django Migrations
 
-- Ensure Redis is running on `redis://localhost:6379/0`.
-- The weekly CRM report runs every Monday at 6:00 AM.
+```
+python manage.py migrate
+```
+
+### 4. Start Django Server
+
+```
+python manage.py runserver
+```
+
+### 5. Start Celery Worker
+
+```
+celery -A crm worker -l info
+```
+
+### 6. Start Celery Beat Scheduler
+
+```
+celery -A crm beat -l info
+```
+
+### 7. Verify Logs
+
+- **CRM Report Log:** `/tmp/crm_report_log.txt`
+- **Order Reminders Log:** `/tmp/order_reminders_log.txt`
+- **Customer Cleanup Log:** `/tmp/customer_cleanup_log.txt`
+- **Low Stock Updates Log:** `/tmp/low_stock_updates_log.txt`
+- **Heartbeat Log:** `/tmp/crm_heartbeat_log.txt`
+
+---
+
+## Crontab Setup
+
+- Use the provided crontab files in `crm/cron_jobs/` to schedule shell and Python scripts as required.
+- Make sure all scripts are executable (`chmod +x script.sh`).

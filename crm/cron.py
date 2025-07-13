@@ -16,6 +16,19 @@ mutation {
 }
 '''
 
+def log_crm_heartbeat():
+    now = datetime.now().strftime('%d/%m/%Y-%H:%M:%S')
+    with open('/tmp/crm_heartbeat_log.txt', 'a') as f:
+        f.write(f"{now} CRM is alive\n")
+    # Optionally, check GraphQL hello
+    try:
+        hello_query = '{ hello }'
+        resp = requests.post(GRAPHQL_URL, json={'query': hello_query})
+        if resp.status_code == 200 and resp.json().get('data', {}).get('hello'):
+            pass  # Endpoint is responsive
+    except Exception:
+        pass
+
 def update_low_stock():
     try:
         response = requests.post(GRAPHQL_URL, json={'query': MUTATION})

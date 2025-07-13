@@ -1,1 +1,9 @@
-django-crontab==0.7.1
+Django>=4.2
+graphene-django
+django-filter
+django-crontab
+celery
+django-celery-beat
+gql
+requests
+redis
